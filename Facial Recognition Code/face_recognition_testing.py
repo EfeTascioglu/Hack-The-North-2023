@@ -70,10 +70,10 @@ if __name__ == "__main__":
     # Example usage:
     recognizer = SimpleFaceRecognizer()
     start_time = time.time()
-    recognizer.add_face(get_absolute_path("images/efe_1_cropped.jpg"), "Efe Tascioglu")
-    recognizer.add_face(get_absolute_path("images/efe_2_cropped.jpg"), "Efe Tascioglu")
-    recognizer.add_face(get_absolute_path("images/efe_3_cropped.jpg"), "Efe Tascioglu")
-    recognizer.add_face(get_absolute_path("images/tyler_1_cropped.jpg"), "Tyler Tian")
+    recognizer.add_face(get_absolute_path("images/efe_1.jpg"), "Efe Tascioglu")
+    recognizer.add_face(get_absolute_path("images/efe_2.jpg"), "Efe Tascioglu")
+    recognizer.add_face(get_absolute_path("images/efe_3.jpg"), "Efe Tascioglu")
+    recognizer.add_face(get_absolute_path("images/tyler_1.jpg"), "Tyler Tian")
     print(f"Time to add 4 faces: {time.time() - start_time}"); start_time = time.time()
     
     recognized_faces = recognizer.recognize(get_absolute_path("images/tyler_2.jpg"))
