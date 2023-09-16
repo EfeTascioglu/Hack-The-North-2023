@@ -1,9 +1,33 @@
 import face_recognition
 import numpy as np
 import os
+import cv2
+import matplotlib.pyplot as plt
 
 def get_absolute_path(relative_path):
     return os.path.abspath(relative_path)
+
+def display_image_with_boxes(image_path, recognized_faces):
+    """
+    Display image with bounding boxes and names.
+
+    Parameters:
+    - image_path (str): Path to the image.
+    - recognized_faces (list): List of dictionaries with 'name' and 'location' keys.
+    """
+    image = cv2.imread(image_path)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
+
+    for face in recognized_faces:
+        top, right, bottom, left = face["location"]
+        name = face["name"]
+        
+        cv2.rectangle(image, (left, top), (right, bottom), (0, 255, 0), 2)  # Draw rectangle around face
+        cv2.putText(image, name, (left, top-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)  # Put name above the rectangle
+
+    plt.imshow(image)
+    plt.axis('off')  # Turn off axis numbers
+    plt.show()
 
 class SimpleFaceRecognizer:
     def __init__(self):
@@ -41,8 +65,16 @@ class SimpleFaceRecognizer:
 # Example usage:
 recognizer = SimpleFaceRecognizer()
 recognizer.add_face(get_absolute_path("images/efe_1.jpg"), "Efe Tascioglu")
+recognizer.add_face(get_absolute_path("images/efe_2.jpg"), "Efe Tascioglu")
+recognizer.add_face(get_absolute_path("images/efe_3.jpg"), "Efe Tascioglu")
 recognizer.add_face(get_absolute_path("images/tyler_1.jpg"), "Tyler Tian")
 
 recognized_faces = recognizer.recognize(get_absolute_path("images/tyler_2.jpg"))
 for face in recognized_faces:
     print(f"Name: {face['name']}, Location: {face['location']}")
+
+display_image_with_boxes(get_absolute_path("images/tyler_2.jpg"), recognized_faces)
+
+
+recognized_faces = recognizer.recognize(get_absolute_path("images/efe_5.jpg"))
+display_image_with_boxes(get_absolute_path("images/efe_5.jpg"), recognized_faces)
