@@ -40,6 +40,8 @@ class LCD:
         self.bus.write_byte_data(self.DISPLAY_TEXT_ADDR, 0x40, ord(c))
     
     def set_cursor(self, row, col):
+        if not 0 <= row <= 1 and 0 <= col <= 15:
+            return
         col = col | 0x80 if row == 0 else col | 0xc0
         self.send_cmd(col)
     
@@ -47,13 +49,31 @@ class LCD:
         self.send_cmd(0x02)
     
     def write_str(self, s):
-        for c in str:
+        for c in s:
+            self.write_char(c)
+
+class ReversedLCD(LCD):
+    
+    def __init__(self):
+        super().__init__()
+    
+    def home(self):
+        super().set_cursor(0, 15)
+    
+    def set_cursor(self, row, col):
+        return super().set_cursor(row, 15 - col)
+    
+    def write_str(self, s, row, col):
+        if not s:
+            return
+        self.set_cursor(row, col - (len(s) - 1))
+        for c in reversed(s):
             self.write_char(c)
 
 if __name__ == "__main__":
-    disp = LCD()
+    disp = ReversedLCD()
     disp.init_display()
     disp.set_bg(0, 0, 255)
-    disp.write_str("test 1")
+    disp.write_str("test 1", 0, 0)
     disp.set_cursor(1, 0)
-    disp.write_str("test 2")
+    disp.write_str("test 2", 0, 0)
