@@ -1,5 +1,9 @@
 import face_recognition
 import numpy as np
+import os
+
+def get_absolute_path(relative_path):
+    return os.path.abspath(relative_path)
 
 class SimpleFaceRecognizer:
     def __init__(self):
@@ -30,6 +34,6 @@ class SimpleFaceRecognizer:
 
 # Example usage:
 recognizer = SimpleFaceRecognizer()
-recognizer.add_face("images/efe_1.jpg", "Efe Tascioglu")
-recognizer.add_face("images/tyler_1.jpg", "Sean Ye")
-print(recognizer.recognize("images/tyler_2.jpg"))
+recognizer.add_face(get_absolute_path("images/efe_1.jpg"), "Efe Tascioglu")
+recognizer.add_face(get_absolute_path("images/tyler_1.jpg"), "Tyler Tian")
+print(recognizer.recognize(get_absolute_path("images/tyler_2.jpg")))
