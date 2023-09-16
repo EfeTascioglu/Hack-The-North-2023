@@ -3,6 +3,7 @@ import numpy as np
 import os
 import cv2
 import matplotlib.pyplot as plt
+import time
 
 def get_absolute_path(relative_path):
     # Get the directory containing the current script
@@ -35,9 +36,10 @@ class SimpleFaceRecognizer:
     def __init__(self):
         self.encodings = []
         self.names = []
+        # Load the Haar cascades xml file for fast face detection
+        self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
     def add_face(self, image_path, name):
-        # Load the image
         image = face_recognition.load_image_file(image_path)
         # Find the face encoding for the image
         face_encoding = face_recognition.face_encodings(image)[0]
@@ -64,19 +66,28 @@ class SimpleFaceRecognizer:
 
         return recognized_faces
 
-# Example usage:
-recognizer = SimpleFaceRecognizer()
-recognizer.add_face(get_absolute_path("images/efe_1.jpg"), "Efe Tascioglu")
-recognizer.add_face(get_absolute_path("images/efe_2.jpg"), "Efe Tascioglu")
-recognizer.add_face(get_absolute_path("images/efe_3.jpg"), "Efe Tascioglu")
-recognizer.add_face(get_absolute_path("images/tyler_1.jpg"), "Tyler Tian")
+if __name__ == "__main__":
+    # Example usage:
+    recognizer = SimpleFaceRecognizer()
+    start_time = time.time()
+    recognizer.add_face(get_absolute_path("images/efe_1_cropped.jpg"), "Efe Tascioglu")
+    recognizer.add_face(get_absolute_path("images/efe_2_cropped.jpg"), "Efe Tascioglu")
+    recognizer.add_face(get_absolute_path("images/efe_3_cropped.jpg"), "Efe Tascioglu")
+    recognizer.add_face(get_absolute_path("images/tyler_1_cropped.jpg"), "Tyler Tian")
+    print(f"Time to add 4 faces: {time.time() - start_time}"); start_time = time.time()
+    
+    recognized_faces = recognizer.recognize(get_absolute_path("images/tyler_2.jpg"))
+    for face in recognized_faces:
+        print(f"Name: {face['name']}, Location: {face['location']}")
+    print(f"Time to identify faces: {time.time() - start_time}"); start_time = time.time()
 
-recognized_faces = recognizer.recognize(get_absolute_path("images/tyler_2.jpg"))
-for face in recognized_faces:
-    print(f"Name: {face['name']}, Location: {face['location']}")
+    recognized_faces = recognizer.recognize(get_absolute_path("images/tyler_2_cropped.jpg"))
+    for face in recognized_faces:
+        print(f"Name: {face['name']}, Location: {face['location']}")
+    print(f"Time to identify faces (cropped): {time.time() - start_time}"); start_time = time.time()
 
-display_image_with_boxes(get_absolute_path("images/tyler_2.jpg"), recognized_faces)
+    
+    display_image_with_boxes(get_absolute_path("images/tyler_2.jpg"), recognized_faces)
 
-
-recognized_faces = recognizer.recognize(get_absolute_path("images/efe_5.jpg"))
-display_image_with_boxes(get_absolute_path("images/efe_5.jpg"), recognized_faces)
+    recognized_faces = recognizer.recognize(get_absolute_path("images/efe_5.jpg"))
+    display_image_with_boxes(get_absolute_path("images/efe_5.jpg"), recognized_faces)
