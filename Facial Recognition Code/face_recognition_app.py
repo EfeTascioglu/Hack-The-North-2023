@@ -5,7 +5,9 @@ import cv2
 import matplotlib.pyplot as plt
 
 def get_absolute_path(relative_path):
-    return os.path.abspath(relative_path)
+    # Get the directory containing the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(script_dir, relative_path)
 
 def display_image_with_boxes(image_path, recognized_faces):
     """
