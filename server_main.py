@@ -13,7 +13,7 @@ def b64_to_path(b64: str) -> str:
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/add_face', methods=['POST'])
 def api_add_face():
-    json = request.json
+    json = request.json # assume that there is correct formatting here for now. 
     image_path = json["image_path"]
     eye_position = json["eye_pos"]
     name_and_data = json["name_and_data"]
@@ -29,10 +29,10 @@ def api_recognize_face():
     name_and_data = recognizer.recognize(get_absolute_path(image_path), eye_position)
     return jsonify({"success": True, "name_and_data": name_and_data})
 
-def mainloop():
+def pseudo_mainloop():
     # The FAILURE signal is associated with a red flash on the display.
     # SUCCESS signal is associated with a green flash.
-    # The Raspi outgoing signal can be associated with a message, which will be displayed.
+    # The Raspi outgoing boolean signal can be associated with a message, which will be displayed.
     # The Raspi incoming signal is an image, an eye position, and either DETECT or RECALL. 
     
     # Wait until either DETECT or RECALL signal. Maintain the previous state of the display until signal received.
