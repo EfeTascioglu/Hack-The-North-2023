@@ -187,6 +187,7 @@ def main():
             #             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
             if right_wink:
                 right_wink = False
+                print("Right wink detected")
                 # Multiple requests not allowed!
                 if not reqs_busy:
                     if eye_pos is None:
@@ -199,6 +200,7 @@ def main():
                         }))
                         reqs_busy = True
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
+                        print("Request for RECALL sent")
             if eye_pos is not None:
                 frame = cv2.circle(frame, np.array(eye_pos), 5, (0, 0, 255), thickness=-1)
             cv2.imshow('frame', frame)
