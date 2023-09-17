@@ -17,6 +17,7 @@ password = "CompleteSecurityRisk1"
 def setup_browser():
     global driver
     options = Options()
+    options.add_argument("--headless")
     options.add_experimental_option("prefs", {
         "profile.managed_default_content_settings.images": 2, # Disable images
         "profile.default_content_setting_values.stylesheets": 2 # Disable CSS

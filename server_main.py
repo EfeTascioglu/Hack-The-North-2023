@@ -53,7 +53,7 @@ def api_scan_qr():
     print("POST REQUEST -QR_DETECT")
     json = request.json
     image_path = b64_to_path(json["image"])
-    qr_code = extract_qr_code_from_image(image_path)
+    qr_code = str(extract_qr_code_from_image(image_path))[4:]
     #image = cv2.imread(image_path)
     #detect = cv2.QRCodeDetector()
     #qr_code, qr_points, qr_status = detect.detectAndDecode(image)
