@@ -59,7 +59,7 @@ class ReversedLCD(LCD):
     
     def write_str_rev(self, s, row, col):
         self.set_cursor(row, ((15 - col) - (len(s) - 1)))
-        for c in reversed(s):
+        for c in reversed(s.upper()):
             self.write_char(c)
 
 if __name__ == "__main__":
