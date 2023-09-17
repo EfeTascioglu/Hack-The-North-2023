@@ -18,7 +18,7 @@ right_wink_wait_counter = 0
 left_wink_pending = False
 right_wink_pending = False
 
-wink_thresh = 3
+wink_thresh = 5
 wink_post_thresh = 2
 
 left_wink = False
@@ -150,11 +150,13 @@ def main():
                         else:
                             name = json["name_and_data"]
                             desc = ""
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 100))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                     else:
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0, 100))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                 # elif endpoint == "/QR_DETECT":
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
