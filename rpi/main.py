@@ -154,11 +154,11 @@ def main():
                                 desc = ""
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
-                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                         else:
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
-                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                 elif endpoint == "/QR_DETECT":
                     if resp.status_code == 200:
@@ -170,7 +170,7 @@ def main():
                             qr_scanned = True
                         else:
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
-                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "No QR code!", 0, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "No QR code!", 0, 0))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                             pass
                 elif endpoint == "/ADD_FACE":
@@ -184,12 +184,12 @@ def main():
                                 desc = ""
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0))
-                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 1, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 1, 0))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                             qr_scanned = False
                         else:
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
-                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json.get("name_and_data", "Try again!"), 0, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json.get("name_and_data", "Try again!"), 0, 0))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                             pass
 
