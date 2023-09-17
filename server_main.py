@@ -28,6 +28,43 @@ def api_recognize_face():
     if recognized_faces["success"]:
         return jsonify({"success": True, "recognized_faces": recognized_faces})
 
+def mainloop():
+    # The FAILURE signal is associated with a red flash on the display.
+    # SUCCESS signal is associated with a green flash.
+    
+    # Wait until either DETECT or RECALL signal. Maintain the previous state of the display until signal received.
+    # If DETECT signal
+    #     Raspi gives us raw image, and position of gaze on image.
+    #     Look at image, assume that it's an alternating QR code input and face input. 
+    #     The Pi will let us know if it's a QRDETECT or FACEDETECT signal.
+    #     If QRDETECT:
+    #         Decode QR code closest to gaze, if it exists. 
+    #         Check if website is a HTN profile
+    #         If website is a HTN profile:
+    #             Return SUCCESS to raspi
+    #         If website is not:
+    #             Return FAILURE to raspi
+    #         Run htnscraper.py on website, running maybe in a separate thread. 
+    #         Store name and bio info in a database
+    #     If FACEDETECT:
+    #         Store the image of the face. 
+    #         If the most recent QR code already has a database entry:
+    #            Overwrite the database entry with the new face image.
+    #         If the most recent QR code is new:
+    #           Create a new database entry with the new face image.
+    #         Return SUCCESS to raspi
+    # If RECALL signal:
+    #     Raspi gives us raw image, and position of gaze on image.
+    #     Find the closest face to the gaze in the image, if it exists.
+    #     If the face exists: 
+    #         run Face Recognition on the face, and find the name. 
+    #         If the name is UNKNOWN:
+    #             Give text: UNKNOWN to raspi
+    #             Return FAILURE to raspi
+    #         If the name is known:
+    #             Give text: $name to raspi
+    #             Return SUCCESS to raspi
+
 
 if __name__ == "__main__":
     # Example usage:
