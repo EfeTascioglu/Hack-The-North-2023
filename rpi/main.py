@@ -130,14 +130,14 @@ def main():
                         name = json["name_and_data"]
                         desc = ""
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
-                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0))
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 50))
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                 elif endpoint == "/QR_DETECT":
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                     qr_scanned = True
                 elif endpoint == "/ADD_FACE":
-                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0))
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0, 50))
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                     qr_scanned = False
 

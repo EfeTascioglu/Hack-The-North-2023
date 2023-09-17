@@ -27,6 +27,7 @@ class DisplayDriver(Thread):
         lcd.set_bg(255, 255, 255)
 
         blink_cycles = 0
+        clear_cycles = 0
 
         while True:
             try:
@@ -34,10 +35,19 @@ class DisplayDriver(Thread):
                     blink_cycles -= 1
                     if blink_cycles == 0:
                         lcd.set_bg(255, 255, 255)
+                
+                if clear_cycles > 0:
+                    clear_cycles -= 1
+                    if clear_cycles == 0:
+                        lcd.clear_display()
 
                 op: DisplayOperation = self.operations.get_nowait()
                 if op.type == DisplayOperation.Type.SET_TEXT:
                     lcd.write_str_rev(op.args[0], op.args[1], op.args[2])
+                    if len(op.args) > 3:
+                        clear_cycles = op.args[3]
+                    else:
+                        clear_cycles = 0
                 elif op.type == DisplayOperation.Type.CLEAR:
                     lcd.clear_display()
                 elif op.type == DisplayOperation.Type.BLINK:
