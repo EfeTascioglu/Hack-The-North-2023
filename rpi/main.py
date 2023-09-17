@@ -13,10 +13,16 @@ from queue import Queue
 
 left_wink_counter = 0
 right_wink_counter = 0
+left_wink_wait_counter = 0
+right_wink_wait_counter = 0
+left_wink_pending = False
+right_wink_pending = False
+
+wink_thresh = 3
+wink_post_thresh = 2
+
 left_wink = False
 right_wink = False
-
-wink_thresh = 8
 class FrontendData:
     ''' BLE Frontend '''
 
@@ -53,15 +59,29 @@ class FrontendData:
             left_nan = np.isnan(lxvec)
             right_nan = np.isnan(rxvec)
 
+            if left_wink_pending:
+                left_wink_wait_counter += 1
+                if left_wink_wait_counter > wink_post_thresh:
+                    left_wink = True
+                    left_wink_pending = False
+                    left_wink_wait_counter = 0
+            
+            if right_wink_pending:
+                right_wink_wait_counter += 1
+                if right_wink_wait_counter > wink_post_thresh:
+                    right_wink = True
+                    right_wink_pending = False
+                    right_wink_wait_counter = 0
+
             if left_nan and right_nan:
                 left_wink_counter = 0
                 right_wink_counter = 0
             elif not left_nan and not right_nan:
                 if left_wink_counter > wink_thresh:
-                    left_wink = True
+                    left_wink_pending = True
                     left_wink_counter = 0
                 if right_wink_counter > wink_thresh:
-                    right_wink = True
+                    left_wink_pending = True
                     right_wink_counter = 0
             elif left_nan:
                 left_wink_counter += 1
