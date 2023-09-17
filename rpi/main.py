@@ -139,25 +139,27 @@ def main():
             
             # This may be the worst code I've ever written
             if not resps_queue.empty():
-                resp = resps_queue.get_nowait()
-                print(resp)
+                result = resps_queue.get_nowait()
+                print(result)
                 reqs_busy = False
-                endpoint, method, json = resp
+                endpoint, method, resp = result
                 if endpoint == "/RECALL":
-                    if json["success"]:
-                        if "\n" in json["name_and_data"]:
-                            name, desc = json["name_and_data"].split("\n")
+                    if resp.status == 200:
+                        json = resp.json()
+                        if json["success"]:
+                            if "\n" in json["name_and_data"]:
+                                name, desc = json["name_and_data"].split("\n")
+                            else:
+                                name = json["name_and_data"]
+                                desc = ""
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                         else:
-                            name = json["name_and_data"]
-                            desc = ""
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 100))
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
-                    else:
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0, 100))
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                 # elif endpoint == "/QR_DETECT":
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
@@ -209,8 +211,12 @@ def main():
                         reqs_busy = True
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
                         print("Request for RECALL sent")
-            if eye_pos is not None and not np.isnan(eye_pos[0]) and not np.isnan(eye_pos[1]):
-                frame = cv2.circle(frame, np.array([int(eye_pos[0]), int(eye_pos[1])]), 5, (0, 0, 255), thickness=-1)
+            if eye_pos is not None:
+                try:
+                    frame = cv2.circle(frame, np.array([int(eye_pos[0]), int(eye_pos[1])]), 5, (0, 0, 255), thickness=-1)
+                # Fuck you OpenCV
+                except:
+                    pass
             cv2.imshow('frame', frame)
             if cv2.waitKey(1) == ord('q'):
                 break
