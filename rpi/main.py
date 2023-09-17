@@ -144,14 +144,18 @@ def main():
                 reqs_busy = False
                 endpoint, method, json = resp
                 if endpoint == "/RECALL":
-                    if "\n" in json["name_and_data"]:
-                        name, desc = json["name_and_data"].split("\n")
+                    if json["success"]:
+                        if "\n" in json["name_and_data"]:
+                            name, desc = json["name_and_data"].split("\n")
+                        else:
+                            name = json["name_and_data"]
+                            desc = ""
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 100))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                     else:
-                        name = json["name_and_data"]
-                        desc = ""
-                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
-                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 50))
-                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                 # elif endpoint == "/QR_DETECT":
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
