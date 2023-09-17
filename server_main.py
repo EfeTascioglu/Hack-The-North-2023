@@ -26,8 +26,8 @@ def api_add_face():
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
     name_and_data = next_name_and_data # # Assume that the caller calls this after calling QR_DETECT.
-    recognizer.add_face(get_absolute_path(image_path), eye_position, name_and_data)
-    return jsonify({"success": True})
+    success = recognizer.add_face(get_absolute_path(image_path), eye_position, name_and_data)
+    return jsonify({"success": success})
 
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/RECALL', methods=['POST'])
@@ -35,9 +35,9 @@ def api_recognize_face():
     json = request.json
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
-    name_and_data = recognizer.recognize(get_absolute_path(image_path), eye_position)
+    success, name_and_data = recognizer.recognize(get_absolute_path(image_path), eye_position)
     print("Found Data:", name_and_data)
-    return jsonify({"success": True, "name_and_data": name_and_data})
+    return jsonify({"success": success, "name_and_data": name_and_data})
 
 @app.route('/api/QR_DETECT', methods=['POST'])
 def api_scan_qr():

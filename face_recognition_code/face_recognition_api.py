@@ -62,16 +62,25 @@ class SimpleFaceRecognizer:
         face_encodings = face_recognition.face_encodings(image)
         face_locations = face_recognition.face_locations(image)
 
+        if len(face_locations) == 0:
+            print("No faces detected in image")
+            return False
+
         closest_face_index = closest_face(eye_coords, face_locations)
         closest_face_encoding = face_encodings[closest_face_index]
         
         self.encodings.append(closest_face_encoding)
         self.names_and_data.append(name_and_data)
+        
+        return True
 
     def recognize(self, unknown_image_path, eye_coords):
         unknown_image = face_recognition.load_image_file(unknown_image_path)
         unknown_face_encodings = face_recognition.face_encodings(unknown_image)
         unknown_face_locations = face_recognition.face_locations(unknown_image)
+        if len(unknown_face_locations) == 0:
+            print("No Images Detected")
+            return False, "No Faces Found"
         
         closest_face_index = closest_face(eye_coords, unknown_face_locations)
         closest_face_encoding = unknown_face_encodings[closest_face_index]
@@ -80,5 +89,5 @@ class SimpleFaceRecognizer:
         if True in matches:
             match_index = matches.index(True)
             name_and_data = self.names_and_data[match_index]
-        return name_and_data
+        return True, name_and_data
     
