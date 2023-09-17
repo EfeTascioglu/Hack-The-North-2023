@@ -101,7 +101,9 @@ def main():
     reqs_thread = APICaller("http://192.168.11.213:5000", reqs_queue, resps_queue)
     reqs_thread.setDaemon(True)
     reqs_thread.start()
+
     reqs_busy = False
+    qr_scanned = False
 
     frontend = FrontendData()
     cap = cv2.VideoCapture(0)
@@ -122,14 +124,23 @@ def main():
                 reqs_busy = False
                 endpoint, method, json = resp
                 if endpoint == "/RECALL":
-                    if "\n" in resp["name_and_data"]:
-                        name, desc = resp["name_and_data"].split("\n")
+                    if "\n" in json["name_and_data"]:
+                        name, desc = json["name_and_data"].split("\n")
                     else:
-                        name = resp["name_and_data"]
+                        name = json["name_and_data"]
                         desc = ""
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0))
                     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
+                elif endpoint == "/QR_DETECT":
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
+                    qr_scanned = True
+                elif endpoint == "/ADD_FACE":
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0))
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
+                    qr_scanned = False
+
 
             eye_pos = None
             try:
@@ -144,7 +155,17 @@ def main():
 
             if left_wink:
                 left_wink = False
-                disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
+                if not reqs_busy:
+                    if eye_pos is None:
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
+                    else:
+                        _, buf = cv2.imencode(".jpg", frame)
+                        reqs_queue.put_nowait(("/ADD_FACE" if qr_scanned else "/QR_DETECT", "POST", {
+                            "image": base64.b64encode(buf.tobytes()).decode("ascii"),
+                            "eye_pos": list(eye_pos)
+                        }))
+                        reqs_busy = True
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
             if right_wink:
                 right_wink = False
                 # Multiple requests not allowed!
@@ -154,7 +175,7 @@ def main():
                     else:
                         _, buf = cv2.imencode(".jpg", frame)
                         reqs_queue.put_nowait(("/RECALL", "POST", {
-                            "image": base64.b64encode(buf.tobytes()),
+                            "image": base64.b64encode(buf.tobytes()).decode("ascii"),
                             "eye_pos": list(eye_pos)
                         }))
                         reqs_busy = True
