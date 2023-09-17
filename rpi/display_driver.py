@@ -17,8 +17,9 @@ class DisplayOperation:
         self.args = args
 
 class DisplayDriver(Thread):
-    def __init__(operations: Queue):
+    def __init__(self, operations: Queue):
         super().__init__()
+        self.operations = operations
     
     def run(self):
         lcd = display.ReversedLCD()
@@ -40,24 +41,8 @@ class DisplayDriver(Thread):
                 elif op.type == DisplayOperation.Type.CLEAR:
                     lcd.clear_display()
                 elif op.type == DisplayOperation.Type.BLINK:
-                    blink_cycles = 10
+                    blink_cycles = 3
                     lcd.set_bg(op.args[0], op.args[1], op.args[2])
             except: # oops we're at a hackathon
                 pass
             time.sleep(0.1)
-
-if __name__ == "__main__":
-    q = Queue()
-    driver = DisplayDriver(q)
-    driver.daemon = True
-    driver.start()
-
-    time.sleep(5)
-    q.put(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Test", 0, 0))
-
-    time.sleep(1)
-    q.put(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
-
-    q.put(DisplayOperation(DisplayOperation.Type.CLEAR))
-    time.sleep(10)
-    print("Exit")
