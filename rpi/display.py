@@ -40,7 +40,7 @@ class LCD:
         self.bus.write_byte_data(self.DISPLAY_TEXT_ADDR, 0x40, ord(c))
     
     def write_char_raw(self, c):
-        self.bus.write_byte_data(self.DISPLAY_TEXT_ADDR, 0x40, ord(c))
+        self.bus.write_byte_data(self.DISPLAY_TEXT_ADDR, 0x40, c)
     
     def set_cursor(self, row, col):
         if not 0 <= row <= 1 and 0 <= col <= 15:
