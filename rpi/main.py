@@ -18,7 +18,7 @@ right_wink_wait_counter = 0
 left_wink_pending = False
 right_wink_pending = False
 
-wink_thresh = 5
+wink_thresh = 15
 wink_post_thresh = 2
 
 left_wink = False
@@ -118,7 +118,7 @@ def main():
     disp_thread.start()
     reqs_queue = Queue()
     resps_queue = Queue()
-    reqs_thread = APICaller("http://192.168.21.213:5000/api", reqs_queue, resps_queue)
+    reqs_thread = APICaller("http://192.168.123.213:5000/api", reqs_queue, resps_queue)
     reqs_thread.setDaemon(True)
     reqs_thread.start()
 
@@ -164,17 +164,34 @@ def main():
                     if resp.status_code == 200:
                         json = resp.json()
                         if json["success"]:
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                             qr_scanned = True
                         else:
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "No QR code!", 0, 0, 100))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                             pass
-                # elif endpoint == "/ADD_FACE":
-                #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0, 50))
-                #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
-                #     qr_scanned = False
+                elif endpoint == "/ADD_FACE":
+                    if resp.status_code == 200:
+                        json = resp.json()
+                        if json["success"]:
+                            if "\n" in json["name_and_data"]:
+                                name, desc = json["name_and_data"].split("\n")
+                            else:
+                                name = json["name_and_data"]
+                                desc = ""
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 1, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
+                            qr_scanned = False
+                        else:
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json.get("name_and_data", "Try again!"), 0, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
+                            pass
 
 
             eye_pos = None
