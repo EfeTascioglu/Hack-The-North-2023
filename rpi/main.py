@@ -114,11 +114,22 @@ def main():
             if not ret:
                 print("Cannot read frame!")
                 break
-
+            
+            # This may be the worst code I've ever written
             if not resps_queue.empty():
                 resp = resps_queue.get_nowait()
-                reqs_busy = False
                 print(resp)
+                reqs_busy = False
+                endpoint, method, json = resp
+                if endpoint == "/RECALL":
+                    if "\n" in resp["name_and_data"]:
+                        name, desc = resp["name_and_data"].split("\n")
+                    else:
+                        name = resp["name_and_data"]
+                        desc = ""
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0))
+                    disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
 
             eye_pos = None
             try:

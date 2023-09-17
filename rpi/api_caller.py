@@ -17,5 +17,5 @@ class APICaller(Thread):
             endpoint = self.url + endpoint
             if method == "POST":
                 resp = requests.post(endpoint, json=payload).json()
-                self.resps.put_nowait(resp)
+                self.resps.put_nowait((endpoint, method, resp))
             
