@@ -144,7 +144,7 @@ def main():
                 reqs_busy = False
                 endpoint, method, resp = result
                 if endpoint == "/RECALL":
-                    if resp.status == 200:
+                    if resp.status_code == 200:
                         json = resp.json()
                         if json["success"]:
                             if "\n" in json["name_and_data"]:
@@ -160,10 +160,17 @@ def main():
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0, 100))
                             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
-                # elif endpoint == "/QR_DETECT":
-                #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
-                #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
-                #     qr_scanned = True
+                elif endpoint == "/QR_DETECT":
+                    if resp.status_code == 200:
+                        json = resp.json()
+                        if json["success"]:
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
+                            qr_scanned = True
+                        else:
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "No QR code!", 0, 0, 100))
+                            disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
+                            pass
                 # elif endpoint == "/ADD_FACE":
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Recorded!", 0, 0, 50))
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
