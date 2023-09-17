@@ -4,6 +4,7 @@ import QRCodeReader
 
 import base64
 from flask import Flask, request, jsonify
+from threading import Thread
 app = Flask(__name__)
 
 global next_name_and_data
@@ -22,7 +23,8 @@ def get_absolute_path(relative_path):
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/ADD_FACE', methods=['POST'])
 def api_add_face():
-    print("ADD_FACE")
+    global next_name_and_data
+    print("POST REQUEST - ADD_FACE")
     json = request.json # assume that there is correct formatting here for now. 
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
@@ -33,7 +35,7 @@ def api_add_face():
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/RECALL', methods=['POST'])
 def api_recognize_face():
-    print("RECALL")
+    print("POST REQUEST - RECALL")
     json = request.json
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
@@ -43,15 +45,18 @@ def api_recognize_face():
 
 @app.route('/api/QR_DETECT', methods=['POST'])
 def api_scan_qr():
-    print("QR_DETECT")
+    print("POST REQUEST -QR_DETECT")
     json = request.json
     image_path = b64_to_path(json["image"])
     qr_code, qr_points, qr_status = QRCodeReader.QR_read(image_path)
     print("GOT THE CODE")
-    next_name_and_data = (scrape_htn_profile(qr_code)).join('\n')
-    print("GOT THE SCRAPE")
+    Thread(target=aync_scrape, args=(qr_code, )).start
     return jsonify({"success": True})
 
+def aync_scrape(qr_code):
+    global next_name_and_data
+    next_name_and_data = (scrape_htn_profile(qr_code))
+    print("GOT THE SCRAPE")
 
 def pseudo_mainloop():
     # The FAILURE signal is associated with a red flash on the display.

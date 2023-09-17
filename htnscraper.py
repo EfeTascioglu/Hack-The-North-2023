@@ -54,8 +54,9 @@ def scrape_htn_profile(user_url = default_user_url) -> (str, str):
     # print(bio_info)
 
     driver.quit()
-
-    return user_name, bio_info
+    
+    print("GOT THE SCRAPE")
+    return "{user_name}\n{bio_info}"
 
 if __name__ == "__main__":
     user_name, bioinfo = scrape_htn_profile()
