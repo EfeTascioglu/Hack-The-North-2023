@@ -3,7 +3,6 @@ import numpy as np
 import os
 import cv2
 import matplotlib.pyplot as plt
-import base64
 
 def get_absolute_path(relative_path):
     # Get the directory containing the current script
@@ -32,6 +31,27 @@ def display_image_with_boxes(image_path, recognized_faces):
     plt.axis('off')  # Turn off axis numbers
     plt.show()
 
+def closest_face(eye_coords, face_locations):
+    """
+    Find the closest face to the eye coordinates.
+
+    Parameters:
+    - eye_coords (tuple): Tuple of (x, y) coordinates of the eye.
+    - face_locations (list): List of tuples of (top, right, bottom, left) coordinates of the faces.
+
+    Returns:
+    - closest_face: Index of Closest Face.
+    """
+    closest_face = None
+    closest_face_distance = None
+    for face_num, face_location in enumerate(face_locations):
+        top, right, bottom, left = face_location
+        face_center = (left + right) / 2, (top + bottom) / 2
+        face_distance = np.linalg.norm(np.array(eye_coords) - np.array(face_center))
+        if closest_face_distance is None or face_distance < closest_face_distance:
+            closest_face = face_num
+            closest_face_distance = face_distance
+    return closest_face
 
 class SimpleFaceRecognizer:
     def __init__(self):
@@ -41,30 +61,29 @@ class SimpleFaceRecognizer:
         self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
     
-    def add_face(self, image_path, name):
+    def add_face(self, image_path, eye_coords, name):
         image = face_recognition.load_image_file(image_path)
         # Find the face encoding for the image
-        face_encoding = face_recognition.face_encodings(image)[0]
-        self.encodings.append(face_encoding)
+        face_encodings = face_recognition.face_encodings(image)
+        face_locations = face_recognition.face_locations(image)
+
+        closest_face_index = closest_face(eye_coords, face_locations)
+        closest_face_encoding = face_encodings[closest_face_index]
+        
+        self.encodings.append(closest_face_encoding)
         self.names.append(name)
 
-    def recognize(self, unknown_image_path):
+    def recognize(self, eye_coords, unknown_image_path):
         unknown_image = face_recognition.load_image_file(unknown_image_path)
         unknown_face_encodings = face_recognition.face_encodings(unknown_image)
         unknown_face_locations = face_recognition.face_locations(unknown_image)
         
-        recognized_faces = []
-
-        for unknown_face_encoding, face_location in zip(unknown_face_encodings, unknown_face_locations):
-            matches = face_recognition.compare_faces(self.encodings, unknown_face_encoding)
-            name = "Unknown"
-            if True in matches:
-                match_index = matches.index(True)
-                name = self.names[match_index]
-            recognized_faces.append({
-                "name": name,
-                "location": face_location  # This will be in the format (top, right, bottom, left)
-            })
-
-        return recognized_faces
+        closest_face_index = closest_face(eye_coords, unknown_face_locations)
+        closest_face_encoding = unknown_face_encodings[closest_face_index]
+        matches = face_recognition.compare_faces(self.encodings, closest_face_encoding)
+        name = "Unknown"
+        if True in matches:
+            match_index = matches.index(True)
+            name = self.names[match_index]
+        return name
     
