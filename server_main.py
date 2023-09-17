@@ -1,4 +1,5 @@
 from face_recognition_code.face_recognition_api import *
+import QRCodeReader
 
 import base64
 from flask import Flask, request, jsonify
@@ -11,7 +12,7 @@ def b64_to_path(b64: str) -> str:
     return "./image_in.jpg"
 
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
-@app.route('/api/add_face', methods=['POST'])
+@app.route('/api/FACEDETECT', methods=['POST'])
 def api_add_face():
     json = request.json # assume that there is correct formatting here for now. 
     image_path = json["image_path"]
@@ -21,13 +22,20 @@ def api_add_face():
     return jsonify({"success": True})
 
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
-@app.route('/api/recognize_face', methods=['POST'])
+@app.route('/api/RECALL', methods=['POST'])
 def api_recognize_face():
     json = request.json
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
     name_and_data = recognizer.recognize(get_absolute_path(image_path), eye_position)
     return jsonify({"success": True, "name_and_data": name_and_data})
+
+@app.route('/api/QRDETECT', methods=['POST'])
+def api_scan_qr():
+    json = request.json
+    image_path = b64_to_path(json["image"])
+    eye_position = json["eye_pos"]
+    qr_code, qr_points, qr_status = QRCodeReader.QR_read(image_path)
 
 def pseudo_mainloop():
     # The FAILURE signal is associated with a red flash on the display.
