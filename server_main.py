@@ -1,23 +1,31 @@
 from face_recognition_code.face_recognition_api import *
+from htnscraper import *
 import QRCodeReader
 
 import base64
 from flask import Flask, request, jsonify
 app = Flask(__name__)
 
+global next_name_and_data
+
 def b64_to_path(b64: str) -> str:
     img_data = base64.b64decode(b64)
-    with open("./image_in.jpg", "wb") as f:
+    with open("./image_in.png", "wb") as f:
         f.write(img_data)
-    return "./image_in.jpg"
+    return "./image_in.png"
+
+def get_absolute_path(relative_path):
+    # Get the directory containing the current script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(script_dir, relative_path)
 
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/ADD_FACE', methods=['POST'])
 def api_add_face():
     json = request.json # assume that there is correct formatting here for now. 
-    image_path = json["image_path"]
+    image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
-    name_and_data = json["name_and_data"]
+    name_and_data = next_name_and_data # # Assume that the caller calls this after calling QR_DETECT.
     recognizer.add_face(get_absolute_path(image_path), eye_position, name_and_data)
     return jsonify({"success": True})
 
@@ -28,14 +36,19 @@ def api_recognize_face():
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
     name_and_data = recognizer.recognize(get_absolute_path(image_path), eye_position)
+    print("Found Data:", name_and_data)
     return jsonify({"success": True, "name_and_data": name_and_data})
 
 @app.route('/api/QR_DETECT', methods=['POST'])
 def api_scan_qr():
     json = request.json
     image_path = b64_to_path(json["image"])
-    eye_position = json["eye_pos"]
     qr_code, qr_points, qr_status = QRCodeReader.QR_read(image_path)
+    print("GOT THE CODE")
+    next_name_and_data = (scrape_htn_profile(qr_code)).join('\n')
+    print("GOT THE SCRAPE")
+    return jsonify({"success": True})
+
 
 def pseudo_mainloop():
     # The FAILURE signal is associated with a red flash on the display.
@@ -94,8 +107,8 @@ if __name__ == "__main__":
     # Example usage:
     recognizer = SimpleFaceRecognizer()
     # Set up the database in RAM
-    recognizer.add_face(get_absolute_path("images/efe_1.jpg"), "Efe Tascioglu")
-    recognizer.add_face(get_absolute_path("images/efe_2.jpg"), "Efe Tascioglu")
-    recognizer.add_face(get_absolute_path("images/efe_3.jpg"), "Efe Tascioglu")
-    recognizer.add_face(get_absolute_path("images/tyler_1.jpg"), "Tyler Tian")
+    recognizer.add_face(get_absolute_path("face_recognition_code/images/efe_1.jpg"), (100, 100), "Efe")
+    recognizer.add_face(get_absolute_path("face_recognition_code/images/efe_3.jpg"), (100, 100), "Efe")
+    #recognizer.add_face(get_absolute_path("face_recognition_code/images/tyler_1.jpg"), (100, 100), "Tyler")
+    #recognizer.add_face(get_absolute_path("face_recognition_code/images/tyler_2.jpg"), (100, 100), "Tyler")
     app.run(host='0.0.0.0')
