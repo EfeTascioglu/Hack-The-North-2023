@@ -2,12 +2,13 @@
 import numpy as np
 import cv2
 
-import time
+import base64
 
 import adhawkapi
 import adhawkapi.frontend
 
 from display_driver import DisplayDriver, DisplayOperation
+from api_caller import APICaller
 from queue import Queue
 
 left_wink_counter = 0
@@ -27,10 +28,6 @@ class FrontendData:
         # Tell the api that we wish to receive eye tracking data stream
         # with self._handle_et_data as the handler
         self._api.register_stream_handler(adhawkapi.PacketType.EYETRACKING_STREAM, self._handle_et_data)
-
-        # Tell the api that we wish to tap into the EVENTS stream
-        # with self._handle_events as the handler
-        self._api.register_stream_handler(adhawkapi.PacketType.EVENTS, self._handle_events)
 
         # Start the api and set its connection callback to self._handle_tracker_connect/disconnect.
         # When the api detects a connection to a MindLink, this function will be run.
@@ -73,7 +70,7 @@ class FrontendData:
 
     def _handle_tracker_connect(self):
         print("Tracker connected")
-        self._api.set_et_stream_rate(30, callback=lambda *args: None) #MUST BE 30 et_stream_rate!!!
+        self._api.set_et_stream_rate(12, callback=lambda *args: None) #MUST BE 30 et_stream_rate!!!
 
         self._api.set_et_stream_control([
             adhawkapi.EyeTrackingStreamTypes.GAZE,
@@ -99,6 +96,12 @@ def main():
     disp_thread = DisplayDriver(disp_queue)
     disp_thread.setDaemon(True)
     disp_thread.start()
+    reqs_queue = Queue()
+    resps_queue = Queue()
+    reqs_thread = APICaller("http://192.168.11.213:5000", reqs_queue, resps_queue)
+    reqs_thread.setDaemon(True)
+    reqs_thread.start()
+    reqs_busy = False
 
     frontend = FrontendData()
     cap = cv2.VideoCapture(0)
@@ -106,23 +109,45 @@ def main():
     global left_wink, right_wink
     try:
         while True:
-            if left_wink:
-                print("left wink")
-                left_wink = False
-                disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
-            if right_wink:
-                print("right_wink")
-                right_wink = False
-                disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
 
             ret, frame = cap.read()
             if not ret:
+                print("Cannot read frame!")
                 break
-            if not np.isnan(gaze[0]):
-                global gaze_coords
-                gaze_coords = np.array([gaze[0], -gaze[1], -gaze[2]])
-                img_pts, jac = cv2.projectPoints(gaze_coords, np.eye(3), np.array([0.0, 0.0, 0.0]), cam_mat, cam_distort)
-                frame = cv2.circle(frame, img_pts[0][0].astype(int), 5, (0, 0, 255), thickness=-1)
+
+            if not resps_queue.empty():
+                resp = resps_queue.get_nowait()
+                reqs_busy = False
+                print(resp)
+
+            eye_pos = None
+            try:
+                if not np.isnan(gaze[0]):
+                    global gaze_coords
+                    gaze_coords = np.array([gaze[0], -gaze[1], -gaze[2]])
+                    img_pts, jac = cv2.projectPoints(gaze_coords, np.eye(3), np.array([0.0, 0.0, 0.0]), cam_mat, cam_distort)
+                    frame = cv2.circle(frame, img_pts[0][0].astype(int), 5, (0, 0, 255), thickness=-1)
+                    eye_pos = (int(img_pts[0][0][0]), int(img_pts[0][0][1]))
+            except cv2.Exception:
+                eye_pos = None
+
+            if left_wink:
+                left_wink = False
+                disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
+            if right_wink:
+                right_wink = False
+                # Multiple requests not allowed!
+                if not reqs_busy:
+                    if eye_pos is None:
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
+                    else:
+                        _, buf = cv2.imencode(".jpg", frame)
+                        reqs_queue.put_nowait(("/RECALL", "POST", {
+                            "image": base64.b64encode(buf.tobytes()),
+                            "eye_pos": list(eye_pos)
+                        }))
+                        reqs_busy = True
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
 
 
             cv2.imshow('frame', frame)
