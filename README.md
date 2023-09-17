@@ -3,7 +3,7 @@ Hack the North hosts a thousand hackers - and we can know them all by name. Irid
 
 ![original](https://github.com/EfeTascioglu/Hack-The-North-2023/assets/46626642/47ecc3ea-d64d-4a07-82ad-5a937aae8489)
 
-![Watch a video demo here](https://youtu.be/dpprLOdzpI4)
+[Watch a video demo here](https://www.youtube.com/watch?v=dpprLOdzpI4)
 
 ## Inspiration
 Iridis was born from three simple questions: "What's a problem that we'd really like to stop having?" "What tools and supplies can we use to fix this problem?" and, "How do we make that solution really damn cool?"
