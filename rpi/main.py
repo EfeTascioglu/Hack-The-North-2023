@@ -54,7 +54,7 @@ class FrontendData:
             gaze = (xvec, yvec, zvec)
 
         if et_data.eye_center is not None:
-            global left_wink_counter, right_wink_counter, left_wink, right_wink
+            global left_wink_counter, right_wink_counter, left_wink, right_wink, left_wink_pending, right_wink_pending, left_wink_wait_counter, right_wink_wait_counter
             rxvec, ryvec, rzvec, lxvec, lyvec, lzvec = et_data.eye_center
             left_nan = np.isnan(lxvec)
             right_nan = np.isnan(rxvec)
@@ -81,7 +81,7 @@ class FrontendData:
                     left_wink_pending = True
                     left_wink_counter = 0
                 if right_wink_counter > wink_thresh:
-                    left_wink_pending = True
+                    right_wink_pending = True
                     right_wink_counter = 0
             elif left_nan:
                 left_wink_counter += 1
@@ -118,7 +118,7 @@ def main():
     disp_thread.start()
     reqs_queue = Queue()
     resps_queue = Queue()
-    reqs_thread = APICaller("http://192.168.11.213:5000", reqs_queue, resps_queue)
+    reqs_thread = APICaller("http://192.168.21.213:5000/api", reqs_queue, resps_queue)
     reqs_thread.setDaemon(True)
     reqs_thread.start()
 
@@ -187,6 +187,7 @@ def main():
             #             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
             if right_wink:
                 right_wink = False
+                print("Right wink detected")
                 # Multiple requests not allowed!
                 if not reqs_busy:
                     if eye_pos is None:
@@ -199,6 +200,7 @@ def main():
                         }))
                         reqs_busy = True
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
+                        print("Request for RECALL sent")
             if eye_pos is not None:
                 frame = cv2.circle(frame, np.array(eye_pos), 5, (0, 0, 255), thickness=-1)
             cv2.imshow('frame', frame)
