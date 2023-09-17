@@ -49,8 +49,11 @@ def api_scan_qr():
     json = request.json
     image_path = b64_to_path(json["image"])
     qr_code, qr_points, qr_status = QRCodeReader.QR_read(image_path)
-    print("GOT THE CODE")
-    Thread(target=aync_scrape, args=(qr_code, )).start
+    print("QR Status", qr_status)
+    if qr_status == None:
+        return jsonify({"success": False})
+    print("QR Code:", qr_code)
+    Thread(target=aync_scrape, args=(qr_code, )).start()
     return jsonify({"success": True})
 
 def aync_scrape(qr_code):
