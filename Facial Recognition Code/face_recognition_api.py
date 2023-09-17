@@ -56,8 +56,8 @@ def api_recognize_face():
     json = request.json
     image_path = b64_to_path(json["image"])
     recognized_faces = recognizer.recognize(image_path)
-    display_image_with_boxes(get_absolute_path(image_path), recognized_faces)
-    return jsonify({"success": True, "recognized_faces": recognized_faces})
+    if recognized_faces["success"]:
+        return jsonify({"success": True, "recognized_faces": recognized_faces})
 
 
 class SimpleFaceRecognizer:
