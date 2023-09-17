@@ -39,6 +39,9 @@ class LCD:
     def write_char(self, c):
         self.bus.write_byte_data(self.DISPLAY_TEXT_ADDR, 0x40, ord(c))
     
+    def write_char_raw(self, c):
+        self.bus.write_byte_data(self.DISPLAY_TEXT_ADDR, 0x40, ord(c))
+    
     def set_cursor(self, row, col):
         if not 0 <= row <= 1 and 0 <= col <= 15:
             return
@@ -57,10 +60,19 @@ class ReversedLCD(LCD):
     def __init__(self):
         super().__init__()
     
+    def rev_char(self, c):
+        return {
+            "E": 0b11010110,
+            "P": 0b11100111,
+            "L": 0b10100011,
+            "J": 0b11011010,
+            "K": 0b10110101,
+        }.get(c, ord(c))
+    
     def write_str_rev(self, s, row, col):
         self.set_cursor(row, ((15 - col) - (len(s) - 1)))
-        for c in reversed(s):
-            self.write_char(c)
+        for c in reversed(s.upper()):
+            self.write_char_raw(self.rev_char(c))
 
 if __name__ == "__main__":
     disp = ReversedLCD()
