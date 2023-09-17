@@ -18,7 +18,7 @@ right_wink_wait_counter = 0
 left_wink_pending = False
 right_wink_pending = False
 
-wink_thresh = 3
+wink_thresh = 5
 wink_post_thresh = 2
 
 left_wink = False
@@ -150,11 +150,13 @@ def main():
                         else:
                             name = json["name_and_data"]
                             desc = ""
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, name, 0, 0))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, desc, 1, 0, 100))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 255, 0))
                     else:
-                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.CLEAR))
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, json["name_and_data"], 0, 0, 100))
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
                 # elif endpoint == "/QR_DETECT":
                 #     disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.SET_TEXT, "Scan face now", 0, 0))
@@ -176,19 +178,21 @@ def main():
             except cv2.Exception:
                 eye_pos = None
 
-            # if left_wink:
-            #     left_wink = False
-            #     if not reqs_busy:
-            #         if eye_pos is None:
-            #             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
-            #         else:
-            #             _, buf = cv2.imencode(".png", frame)
-            #             reqs_queue.put_nowait(("/ADD_FACE" if qr_scanned else "/QR_DETECT", "POST", {
-            #                 "image": base64.b64encode(buf.tobytes()).decode("ascii"),
-            #                 "eye_pos": list(eye_pos)
-            #             }))
-            #             reqs_busy = True
-            #             disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
+            if left_wink:
+                left_wink = False
+                print("Left wink detected")
+                if not reqs_busy:
+                    if eye_pos is None:
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 255, 0, 0))
+                    else:
+                        _, buf = cv2.imencode(".png", frame)
+                        reqs_queue.put_nowait(("/ADD_FACE" if qr_scanned else "/QR_DETECT", "POST", {
+                            "image": base64.b64encode(buf.tobytes()).decode("ascii"),
+                            "eye_pos": list(eye_pos)
+                        }))
+                        reqs_busy = True
+                        disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
+                        print(f"Request for {'/ADD_FACE' if qr_scanned else '/QR_DETECT'} sent")
             if right_wink:
                 right_wink = False
                 print("Right wink detected")
@@ -205,8 +209,8 @@ def main():
                         reqs_busy = True
                         disp_queue.put_nowait(DisplayOperation(DisplayOperation.Type.BLINK, 0, 0, 255))
                         print("Request for RECALL sent")
-            if eye_pos is not None:
-                frame = cv2.circle(frame, np.array(eye_pos), 5, (0, 0, 255), thickness=-1)
+            if eye_pos is not None and not np.isnan(eye_pos[0]) and not np.isnan(eye_pos[1]):
+                frame = cv2.circle(frame, np.array([int(eye_pos[0]), int(eye_pos[1])]), 5, (0, 0, 255), thickness=-1)
             cv2.imshow('frame', frame)
             if cv2.waitKey(1) == ord('q'):
                 break
