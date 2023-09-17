@@ -3,6 +3,10 @@ import numpy as np
 import os
 import cv2
 import matplotlib.pyplot as plt
+<<<<<<< HEAD
+=======
+import time
+>>>>>>> 7698c2d (Implement /api/recognize_face)
 import base64
 
 from flask import Flask, request, jsonify
@@ -56,7 +60,8 @@ def api_recognize_face():
     json = request.json
     image_path = b64_to_path(json["image"])
     recognized_faces = recognizer.recognize(image_path)
-    display_image_with_boxes(get_absolute_path(image_path), recognized_faces)
+    if recognized_faces["success"]:
+
     return jsonify({"success": True, "recognized_faces": recognized_faces})
 
 
@@ -97,5 +102,5 @@ class SimpleFaceRecognizer:
 if __name__ == "__main__":
     # Example usage:
     recognizer = SimpleFaceRecognizer()
-    app.run(host='0.0.0.0')
+    app.run(host="0.0.0.0")
     
