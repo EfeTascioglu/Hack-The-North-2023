@@ -15,8 +15,9 @@ def b64_to_path(b64: str) -> str:
 def api_add_face():
     json = request.json
     image_path = json["image_path"]
-    name = json["name"]
-    recognizer.add_face(get_absolute_path(image_path), name)
+    eye_position = json["eye_pos"]
+    name_and_data = json["name_and_data"]
+    recognizer.add_face(get_absolute_path(image_path), eye_position, name_and_data)
     return jsonify({"success": True})
 
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
@@ -24,9 +25,9 @@ def api_add_face():
 def api_recognize_face():
     json = request.json
     image_path = b64_to_path(json["image"])
-    recognized_faces = recognizer.recognize(image_path)
-    if recognized_faces["success"]:
-        return jsonify({"success": True, "recognized_faces": recognized_faces})
+    eye_position = json["eye_pos"]
+    name_and_data = recognizer.recognize(get_absolute_path(image_path), eye_position)
+    return jsonify({"success": True, "name_and_data": name_and_data})
 
 def mainloop():
     # The FAILURE signal is associated with a red flash on the display.
@@ -78,6 +79,7 @@ def mainloop():
     #     If the face does not exist:
     #         Give text: NO FACE to raspi
     #         Return FAILURE to raspi
+    pass
 
 
 if __name__ == "__main__":

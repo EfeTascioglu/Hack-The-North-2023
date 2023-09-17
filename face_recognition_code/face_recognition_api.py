@@ -73,7 +73,7 @@ class SimpleFaceRecognizer:
         self.encodings.append(closest_face_encoding)
         self.names_and_data.append(name_and_data)
 
-    def recognize(self, eye_coords, unknown_image_path):
+    def recognize(self, unknown_image_path, eye_coords):
         unknown_image = face_recognition.load_image_file(unknown_image_path)
         unknown_face_encodings = face_recognition.face_encodings(unknown_image)
         unknown_face_locations = face_recognition.face_locations(unknown_image)
