@@ -17,7 +17,14 @@ password = "CompleteSecurityRisk1"
 def setup_browser():
     global driver
     options = Options()
-    options.add_argument("--headless")
+    options.add_experimental_option("prefs", {
+        "profile.managed_default_content_settings.images": 2, # Disable images
+        "profile.default_content_setting_values.stylesheets": 2 # Disable CSS
+    })
+    
+    # Set custom user-agent
+    user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.5845.188 Safari/537.36"
+    options.add_argument(f"user-agent={user_agent}")
     driver = webdriver.Chrome(options=options)
 
 def scrape_htn_profile(user_url = default_user_url) -> (str, str):
@@ -69,6 +76,5 @@ def scrape_htn_profile(user_url = default_user_url) -> (str, str):
     return str(user_name) + "\n" + str(bio_info)
 
 if __name__ == "__main__":
-    user_name, bioinfo = scrape_htn_profile()
-    print(user_name)
-    print(bioinfo)
+    data = scrape_htn_profile()
+    print(data)

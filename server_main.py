@@ -10,6 +10,7 @@ from threading import Thread
 app = Flask(__name__)
 
 global next_name_and_data
+next_name_and_data = None
 
 def b64_to_path(b64: str) -> str:
     img_data = base64.b64decode(b64)
@@ -30,7 +31,7 @@ def api_add_face():
     json = request.json # assume that there is correct formatting here for now. 
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
-    if name_and_data is None:
+    if next_name_and_data is None:
         return jsonify({"success": False, "name_and_data": "Not Ready"})
     name_and_data = next_name_and_data # # Assume that the caller calls this after calling QR_DETECT.
     success = recognizer.add_face(get_absolute_path(image_path), eye_position, name_and_data)
@@ -59,8 +60,8 @@ def api_scan_qr():
     if qr_code is None:
         print("No QR Code Found")
         return jsonify({"success": False})
-    print("QR Code:", qr_code)
-    Thread(target=aync_scrape, args=(qr_code, )).start()
+    print("QR Code:", str(qr_code))
+    Thread(target=aync_scrape, args=(str(qr_code), )).start()
     return jsonify({"success": True})
 
 def aync_scrape(qr_code):
