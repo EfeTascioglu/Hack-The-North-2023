@@ -22,6 +22,7 @@ def get_absolute_path(relative_path):
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/ADD_FACE', methods=['POST'])
 def api_add_face():
+    print("ADD_FACE")
     json = request.json # assume that there is correct formatting here for now. 
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
@@ -32,6 +33,7 @@ def api_add_face():
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/RECALL', methods=['POST'])
 def api_recognize_face():
+    print("RECALL")
     json = request.json
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
@@ -41,6 +43,7 @@ def api_recognize_face():
 
 @app.route('/api/QR_DETECT', methods=['POST'])
 def api_scan_qr():
+    print("QR_DETECT")
     json = request.json
     image_path = b64_to_path(json["image"])
     qr_code, qr_points, qr_status = QRCodeReader.QR_read(image_path)

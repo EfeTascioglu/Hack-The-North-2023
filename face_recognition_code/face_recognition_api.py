@@ -63,7 +63,6 @@ class SimpleFaceRecognizer:
         face_locations = face_recognition.face_locations(image)
 
         if len(face_locations) == 0:
-            print("No faces detected in image")
             return False
 
         closest_face_index = closest_face(eye_coords, face_locations)
