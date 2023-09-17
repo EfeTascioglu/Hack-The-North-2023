@@ -56,12 +56,12 @@ def closest_face(eye_coords, face_locations):
 class SimpleFaceRecognizer:
     def __init__(self):
         self.encodings = []
-        self.names = []
+        self.names_and_data = []
         # Load the Haar cascades xml file for fast face detection
         self.face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
     
-    def add_face(self, image_path, eye_coords, name):
+    def add_face(self, image_path, eye_coords, name_and_data):
         image = face_recognition.load_image_file(image_path)
         # Find the face encoding for the image
         face_encodings = face_recognition.face_encodings(image)
@@ -71,7 +71,7 @@ class SimpleFaceRecognizer:
         closest_face_encoding = face_encodings[closest_face_index]
         
         self.encodings.append(closest_face_encoding)
-        self.names.append(name)
+        self.names_and_data.append(name_and_data)
 
     def recognize(self, eye_coords, unknown_image_path):
         unknown_image = face_recognition.load_image_file(unknown_image_path)
@@ -81,9 +81,9 @@ class SimpleFaceRecognizer:
         closest_face_index = closest_face(eye_coords, unknown_face_locations)
         closest_face_encoding = unknown_face_encodings[closest_face_index]
         matches = face_recognition.compare_faces(self.encodings, closest_face_encoding)
-        name = "Unknown"
+        name_and_data = "Unknown"
         if True in matches:
             match_index = matches.index(True)
-            name = self.names[match_index]
-        return name
+            name_and_data = self.names_and_data[match_index]
+        return name_and_data
     
