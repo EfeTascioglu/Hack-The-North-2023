@@ -1,10 +1,11 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-
+from selenium.common.exceptions import NoSuchElementException
 
 import time
 
+driver = None  # global variable to store the driver
 login_url = """https://auth.hackthenorth.com/?redirect=my.hackthenorth.com%2F&method=cookie"""
 default_user_url = """https://my.hackthenorth.com/qr/2023/fiery-horse-link-town"""
 
@@ -13,11 +14,16 @@ default_user_url = """https://my.hackthenorth.com/qr/2023/fiery-horse-link-town"
 email = "andy.gong@mail.utoronto.ca"
 password = "CompleteSecurityRisk1"
 
-def scrape_htn_profile(user_url = default_user_url) -> (str, str):
-    # Set up the headless browser
+def setup_browser():
+    global driver
     options = Options()
     options.add_argument("--headless")
     driver = webdriver.Chrome(options=options)
+
+def scrape_htn_profile(user_url = default_user_url) -> (str, str):
+    global driver
+    if not driver:
+        setup_browser()
     
     # Load the login page in the headless browser
     driver.get(login_url)
@@ -43,9 +49,15 @@ def scrape_htn_profile(user_url = default_user_url) -> (str, str):
     driver.implicitly_wait(10)
 
     # Find the content between the specified tags
-    user_name = driver.find_element(By.CSS_SELECTOR, "p.sc-dIsUp.jEEywD.sc-LvPXS.dZmfky").text
-
-    bio_info = driver.find_element(By.CSS_SELECTOR, "p.sc-dujIKe.gKBZFy").text
+    try: 
+        user_name = driver.find_element(By.CSS_SELECTOR, "p.sc-dIsUp.jEEywD.sc-LvPXS.dZmfky").text
+    except NoSuchElementException:
+        user_name = "Unknown"
+        
+    try:
+        bio_info = driver.find_element(By.CSS_SELECTOR, "p.sc-dujIKe.gKBZFy").text
+    except NoSuchElementException:
+        bio_info = ""
 
     # We can also grab interests in a similar way, but the tag is shared with bio_info so it's slightly more involved.
 
@@ -54,9 +66,7 @@ def scrape_htn_profile(user_url = default_user_url) -> (str, str):
     # print(bio_info)
 
     driver.quit()
-    
-    print("GOT THE SCRAPE")
-    return "{user_name}\n{bio_info}"
+    return str(user_name) + "\n" + str(bio_info)
 
 if __name__ == "__main__":
     user_name, bioinfo = scrape_htn_profile()

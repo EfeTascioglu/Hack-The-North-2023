@@ -1,6 +1,8 @@
 from face_recognition_code.face_recognition_api import *
 from htnscraper import *
+from htnscraper2 import *
 import QRCodeReader
+from QRCodeReader2 import *
 
 import base64
 from flask import Flask, request, jsonify
@@ -28,9 +30,11 @@ def api_add_face():
     json = request.json # assume that there is correct formatting here for now. 
     image_path = b64_to_path(json["image"])
     eye_position = json["eye_pos"]
+    if name_and_data is None:
+        return jsonify({"success": False, "name_and_data": "Not Ready"})
     name_and_data = next_name_and_data # # Assume that the caller calls this after calling QR_DETECT.
     success = recognizer.add_face(get_absolute_path(image_path), eye_position, name_and_data)
-    return jsonify({"success": success})
+    return jsonify({"success": success, "name_and_data": name_and_data})
 
 # The route() function of the Flask class is a decorator, which tells the application which URL should call the associated function.
 @app.route('/api/RECALL', methods=['POST'])
@@ -48,9 +52,12 @@ def api_scan_qr():
     print("POST REQUEST -QR_DETECT")
     json = request.json
     image_path = b64_to_path(json["image"])
-    qr_code, qr_points, qr_status = QRCodeReader.QR_read(image_path)
-    print("QR Status", qr_status)
-    if qr_status == None:
+    qr_code = extract_qr_code_from_image(image_path)
+    #image = cv2.imread(image_path)
+    #detect = cv2.QRCodeDetector()
+    #qr_code, qr_points, qr_status = detect.detectAndDecode(image)
+    if qr_code is None:
+        print("No QR Code Found")
         return jsonify({"success": False})
     print("QR Code:", qr_code)
     Thread(target=aync_scrape, args=(qr_code, )).start()
@@ -59,7 +66,7 @@ def api_scan_qr():
 def aync_scrape(qr_code):
     global next_name_and_data
     next_name_and_data = (scrape_htn_profile(qr_code))
-    print("GOT THE SCRAPE")
+    print("GOT THE SCRAPE:", next_name_and_data)
 
 def pseudo_mainloop():
     # The FAILURE signal is associated with a red flash on the display.
@@ -118,8 +125,8 @@ if __name__ == "__main__":
     # Example usage:
     recognizer = SimpleFaceRecognizer()
     # Set up the database in RAM
-    recognizer.add_face(get_absolute_path("face_recognition_code/images/efe_1.jpg"), (100, 100), "Efe")
-    recognizer.add_face(get_absolute_path("face_recognition_code/images/efe_3.jpg"), (100, 100), "Efe")
+    #recognizer.add_face(get_absolute_path("face_recognition_code/images/efe_1.jpg"), (100, 100), "Efe")
+    #recognizer.add_face(get_absolute_path("face_recognition_code/images/efe_3.jpg"), (100, 100), "Efe")
     #recognizer.add_face(get_absolute_path("face_recognition_code/images/tyler_1.jpg"), (100, 100), "Tyler")
     #recognizer.add_face(get_absolute_path("face_recognition_code/images/tyler_2.jpg"), (100, 100), "Tyler")
     app.run(host='0.0.0.0')
