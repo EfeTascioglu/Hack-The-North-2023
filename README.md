@@ -36,7 +36,7 @@ Challenges teach lessons for us, and given how many challenges we've had, it's o
 ## What's next for Iridis
 Iridis is simply a functional idea, that we tried to build in a cool way. Our experiences have motivated further learning in various aspects of tech dev, and we're more than happy to simply have brought our vision to reality for the time being. However, we've also got a heck of a lot of ideas to make Iridis better, and potentially to expand the system to being a more generally applicable one beyond just Hack the North's ecosystem. What happens next is ultimately not clear, but we're very happy with the way things have gone until now. If anyone is interested in the process, build, or ideas, we'd be ecstatic to chat!
 
-For more information, check out the devpost ![here](https://devpost.com/software/iridis)
+For more information, check out the devpost [here](https://devpost.com/software/iridis)
 
 ## Working Docs
 ### API Endpoints
